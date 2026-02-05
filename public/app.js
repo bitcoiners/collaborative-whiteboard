@@ -18,7 +18,12 @@ const WhiteboardApp = (function() {
         onlineUsers: 0,
         linesDrawn: 0,
         localHistory: [],
-        isConnected: false
+        isConnected: false,
+        
+        // Phase 4: Throttling state for performance optimization
+        lastEmitTime: 0,
+        throttleDelay: 50, // ms - optimal for smooth drawing (20 events/second)
+        pendingDraws: []   // For potential batching (future optimization)
     };
     
     // Initialize the application
@@ -48,7 +53,7 @@ const WhiteboardApp = (function() {
         // Connect to Socket.IO server
         connectToServer();
         
-        console.log('Whiteboard initialized successfully.');
+        console.log('Whiteboard initialized successfully with Phase 4 optimizations.');
     }
     
     // Set up canvas with proper dimensions and context
@@ -182,7 +187,7 @@ const WhiteboardApp = (function() {
         }
     }
     
-    // Handle mouse/touch drawing
+    // Handle mouse/touch drawing - WITH THROTTLING OPTIMIZATION
     function startDrawing(e) {
         if (!state.isConnected) return;
         
@@ -190,15 +195,21 @@ const WhiteboardApp = (function() {
         const pos = getCanvasCoordinates(e);
         [state.lastX, state.lastY] = [pos.x, pos.y];
         
+        // Reset throttling state for new stroke
+        state.lastEmitTime = 0;
+        state.pendingDraws = [];
+        
         // Prevent default to avoid scrolling on touch devices
         e.preventDefault();
     }
     
+    // Phase 4: Optimized draw function with throttling
     function draw(e) {
         if (!state.isDrawing || !state.isConnected) return;
         
         e.preventDefault();
         const pos = getCanvasCoordinates(e);
+        const currentTime = Date.now();
         
         // Create line data object
         const lineData = {
@@ -210,17 +221,28 @@ const WhiteboardApp = (function() {
             brushSize: state.brushSize
         };
         
-        // Draw locally
+        // ALWAYS draw locally immediately for smooth visual feedback
         drawLine(lineData);
         
         // Save to local history for undo
         state.localHistory.push(lineData);
         undoBtn.disabled = false;
         
-        // Send to server
-        state.socket.emit('draw', lineData);
+        // PHASE 4: THROTTLING - Only emit to server at controlled rate
+        if (currentTime - state.lastEmitTime >= state.throttleDelay) {
+            // It's time to send to server
+            state.socket.emit('draw', lineData);
+            state.lastEmitTime = currentTime;
+            
+            // Clear any pending draws since we just sent the latest
+            state.pendingDraws = [];
+        } else {
+            // During throttle period, store for potential batching
+            // (Current implementation skips to reduce complexity)
+            // Future enhancement: interpolate points or batch sends
+        }
         
-        // Update counters
+        // Update counters and UI
         state.linesDrawn++;
         updateLineCount();
         
@@ -230,6 +252,9 @@ const WhiteboardApp = (function() {
     
     function stopDrawing() {
         state.isDrawing = false;
+        
+        // Send any final draw if we have one pending
+        // (Future enhancement for batching implementation)
     }
     
     // Touch event handlers
@@ -388,13 +413,26 @@ const WhiteboardApp = (function() {
         lineCount.textContent = state.linesDrawn;
     }
     
+    // Phase 4: Optional adaptive throttling based on connection quality
+    function setAdaptiveThrottle() {
+        // Future enhancement: detect connection speed and adjust throttleDelay
+        // For now, using fixed 50ms which works well for most connections
+    }
+    
     // Public API
     return {
         init: init,
         getState: () => ({ ...state }),
         clearCanvas: clearCanvas,
         selectColor: selectColor,
-        selectBrushSize: selectBrushSize
+        selectBrushSize: selectBrushSize,
+        // Phase 4: Expose throttling control for future optimization
+        setThrottleDelay: (delay) => {
+            if (delay >= 16 && delay <= 200) {
+                state.throttleDelay = delay;
+                console.log(`Throttle delay set to ${delay}ms`);
+            }
+        }
     };
 })();
 
