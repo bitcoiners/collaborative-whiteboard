@@ -1,15 +1,17 @@
 {
-  "name": "real-time-whiteboard",
+  "name": "collaborative-whiteboard",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Real-time collaborative whiteboard with Socket.IO",
+  "main": "src/server.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +22,10 @@
   },
   "devDependencies": {
     "jest": "^30.2.0",
+    "supertest": "^6.3.4",
+    "@types/jest": "^29.5.12",
     "nodemon": "^3.1.11",
     "socket.io-client": "^4.8.3"
   }
 }
+

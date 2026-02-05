@@ -77,10 +77,7 @@ io.on('connection', (socket) => {
     }
     
     // Broadcast the clear event to ALL connected clients
-    io.emit('clear-canvas', {
-      clearedBy: socket.id,
-      timestamp: new Date().toISOString()
-    });
+    io.emit("clear-canvas");
     console.log(`[${socket.id}] Requested canvas clear for all clients`);
   });
   

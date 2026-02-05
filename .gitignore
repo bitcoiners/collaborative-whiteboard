@@ -39,3 +39,11 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+# Test coverage reports
+coverage/
+
+# Backup files
+*.backup
+*.bak
+*.backup*
