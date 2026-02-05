@@ -75,16 +75,16 @@ This project uses Jest for Test-Driven Development (TDD).
 
 ### Running Tests
 
-**Run all tests
+- **Run all tests
 npm test
 
-**Run specific test file
+- **Run specific test file
 npm test tests/integration/server.test.js
 
-**Run tests in watch mode
+- **Run tests in watch mode
 npm run test:watch
 
-**Generate coverage report
+- **Generate coverage report
 npm run test:coverage
 
 
@@ -124,21 +124,6 @@ npm start
 - **Development:** nodemon for auto-restart
 - **Styling:** Font Awesome icons, custom CSS with animations
 
-## Project Structure
-
-collaborative-whiteboard/
-├── src/
-│ └── server.js # Express and Socket.IO server
-├── public/
-│ ├── index.html # Main HTML page
-│ ├── app.js # Client-side JavaScript (optimized)
-│ └── style.css # CSS styling
-├── tests/
-│ ├── integration/ # Socket.IO server tests (17 tests)
-│ ├── unit/ # Drawing logic tests (20 tests)
-│ └── e2e/ # Manual testing checklists
-├── jest.config.js # Jest configuration
-└── package.json # Project dependencies
 
 
 ## Phase 4 Implementation Details
