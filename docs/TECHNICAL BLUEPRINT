@@ -1,0 +1,448 @@
+# DOCUMENT 2: TECHNICAL BLUEPRINT
+
+## Project Structure
+
+```
+collaborative-whiteboard/
+│
+├── server.js                 # Express and Socket.IO server
+├── package.json              # Project dependencies and scripts
+├── package-lock.json         # Locked dependency versions (auto-generated)
+│
+└── public/                   # Static files served by Express
+    ├── index.html            # Main HTML page
+    ├── app.js                # Client-side JavaScript
+    └── style.css             # CSS styling
+```
+
+## Backend Specification (server.js)
+
+### Dependencies to Install
+
+```json
+{
+  "express": "^4.18.2",
+  "socket.io": "^4.6.1"
+}
+```
+
+**Optional Development Dependency:**
+```json
+{
+  "nodemon": "^3.0.1"
+}
+```
+
+### Server Architecture
+
+**Port Configuration:**
+- Default port: `3000`
+- Should be configurable via environment variable `PORT`
+
+**Express Setup:**
+- Create Express application instance
+- Serve static files from the `public` directory
+- Create HTTP server from Express app
+- Attach Socket.IO to the HTTP server
+
+**Socket.IO Configuration:**
+- Enable CORS for local development
+- Set up connection event handler
+- Log connections and disconnections with timestamp and socket ID
+
+### Socket.IO Event Specification
+
+**Events the Server Listens For:**
+
+1. **Event Name:** `'draw'`
+   - **Purpose:** Receive drawing data from a client
+   - **Data Structure:**
+     ```javascript
+     {
+       x0: Number,      // Starting X coordinate
+       y0: Number,      // Starting Y coordinate
+       x1: Number,      // Ending X coordinate
+       y1: Number,      // Ending Y coordinate
+       color: String    // Hex color code (e.g., '#000000')
+     }
+     ```
+   - **Server Action:** Broadcast this data to all other connected clients (not including sender)
+
+2. **Event Name:** `'clear-canvas'`
+   - **Purpose:** Receive request to clear the canvas
+   - **Data Structure:** No data payload required
+   - **Server Action:** Broadcast this event to all connected clients (including sender)
+
+**Events the Server Emits:**
+
+1. **Event Name:** `'draw'`
+   - **Purpose:** Send drawing data to all clients except the originator
+   - **Broadcast Method:** `socket.broadcast.emit('draw', data)`
+   - **Data Structure:** Same as received from client
+
+2. **Event Name:** `'clear-canvas'`
+   - **Purpose:** Instruct all clients to clear their canvas
+   - **Broadcast Method:** `io.emit('clear-canvas')`
+   - **Data Structure:** No data payload
+
+### Server Responsibilities
+
+- **Connection Management:** Track and log client connections/disconnections
+- **Event Relay:** Act as a message broker, forwarding events between clients
+- **No State Storage:** The server does not maintain canvas state (Phase 1-3)
+- **Broadcast Logic:** Ensure drawing events are sent to all clients except the sender; clear events are sent to all clients including sender
+
+## Frontend Specification
+
+### HTML Structure (index.html)
+
+**Required Elements:**
+
+1. **Canvas Element:**
+   - ID: `'whiteboard'`
+   - Default dimensions: `800px × 600px`
+   - Border styling for visibility
+
+2. **Controls Container:**
+   - Color picker (multiple colored buttons or input type="color")
+   - Clear button
+   - Connection status indicator
+
+3. **Script Tags (in order):**
+   - Socket.IO client library (CDN): `/socket.io/socket.io.js` (served automatically by Socket.IO)
+   - Custom application script: `app.js`
+
+4. **Link Tag:**
+   - CSS stylesheet: `style.css`
+
+**Recommended Layout:**
+- Canvas as the main focal point
+- Control panel positioned above or to the side of the canvas
+- Responsive meta viewport tag
+
+### JavaScript Specification (app.js)
+
+#### Global Variables
+
+- `socket` - Socket.IO client instance
+- `canvas` - Canvas DOM element reference
+- `context` - 2D drawing context from canvas
+- `isDrawing` - Boolean flag tracking current drawing state
+- `currentColor` - String storing current selected color (default: `'#000000'`)
+- `lastX`, `lastY` - Numbers storing the last mouse position during drawing
+
+#### Function Breakdown
+
+**1. `initializeApp()`**
+- **Purpose:** Entry point that orchestrates initialization
+- **Calls:** `setupSocketIO()`, `setupCanvas()`, `setupControls()`
+- **Timing:** Executed on `DOMContentLoaded` event
+
+**2. `setupSocketIO()`**
+- **Purpose:** Establish Socket.IO connection and register event listeners
+- **Actions:**
+  - Create socket connection to the server
+  - Listen for `'connect'` event → log connection success
+  - Listen for `'draw'` event → call `drawLine(data)`
+  - Listen for `'clear-canvas'` event → call `clearCanvas()`
+  - Listen for `'disconnect'` event → log disconnection and update UI
+- **Returns:** Socket instance
+
+**3. `setupCanvas()`**
+- **Purpose:** Configure canvas and attach mouse event listeners
+- **Actions:**
+  - Get canvas element by ID
+  - Get 2D context from canvas
+  - Set canvas dimensions (consider window size)
+  - Add event listener for `'mousedown'` → call `handleMouseDown(e)`
+  - Add event listener for `'mousemove'` → call `handleMouseMove(e)`
+  - Add event listener for `'mouseup'` → call `handleMouseUp(e)`
+  - Add event listener for `'mouseout'` → call `handleMouseUp(e)` (stop drawing if mouse leaves canvas)
+
+**4. `handleMouseDown(e)`**
+- **Purpose:** Initiate drawing when mouse button is pressed
+- **Parameters:** `e` - Mouse event object
+- **Actions:**
+  - Set `isDrawing` to `true`
+  - Calculate mouse position relative to canvas (accounting for canvas offset)
+  - Store position in `lastX` and `lastY`
+
+**5. `handleMouseMove(e)`**
+- **Purpose:** Track mouse movement and emit drawing data during drawing
+- **Parameters:** `e` - Mouse event object
+- **Logic:**
+  - If `isDrawing` is `false`, return immediately
+  - Calculate current mouse position relative to canvas
+  - Create line data object: `{ x0: lastX, y0: lastY, x1: currentX, y1: currentY, color: currentColor }`
+  - Call `drawLine(lineData)` to draw locally
+  - Emit line data to server: `socket.emit('draw', lineData)`
+  - Update `lastX` and `lastY` to current position
+
+**6. `handleMouseUp(e)`**
+- **Purpose:** Stop drawing when mouse button is released or leaves canvas
+- **Parameters:** `e` - Mouse event object (optional)
+- **Actions:**
+  - Set `isDrawing` to `false`
+
+**7. `drawLine(data)`**
+- **Purpose:** Render a line segment on the canvas
+- **Parameters:** `data` - Object containing `{ x0, y0, x1, y1, color }`
+- **Actions:**
+  - Begin new path on context
+  - Set `strokeStyle` to `data.color`
+  - Set `lineWidth` to desired thickness (e.g., `2`)
+  - Set `lineCap` to `'round'` for smooth lines
+  - Call `moveTo(data.x0, data.y0)`
+  - Call `lineTo(data.x1, data.x1)`
+  - Call `stroke()` to render the line
+
+**8. `setupControls()`**
+- **Purpose:** Initialize UI controls (color picker and clear button)
+- **Actions:**
+  - Get all color button elements
+  - Add click event listeners to each color button → update `currentColor` variable and visual selection indicator
+  - Get clear button element
+  - Add click event listener to clear button → emit `'clear-canvas'` event to server
+
+**9. `clearCanvas()`**
+- **Purpose:** Clear all drawings from the canvas
+- **Actions:**
+  - Call `context.clearRect(0, 0, canvas.width, canvas.height)` to erase entire canvas
+
+**10. `updateConnectionStatus(isConnected)`**
+- **Purpose:** Update UI to reflect connection state
+- **Parameters:** `isConnected` - Boolean
+- **Actions:**
+  - Find connection status indicator element
+  - Update text content and styling to show "Connected" (green) or "Disconnected" (red)
+
+#### Helper Functions (Optional but Recommended)
+
+**11. `getMousePosition(canvas, event)`**
+- **Purpose:** Calculate accurate mouse coordinates relative to canvas
+- **Parameters:** `canvas` - Canvas element, `event` - Mouse event
+- **Returns:** Object `{ x: Number, y: Number }`
+- **Logic:**
+  - Get canvas bounding rectangle
+  - Calculate `x = event.clientX - rect.left`
+  - Calculate `y = event.clientY - rect.top`
+  - Return coordinates
+
+## Data Flow Diagram (Text Description)
+
+### Scenario: User A Draws a Line, Appears on User B's Screen
+
+**Step-by-Step Flow:**
+
+1. **User A Action:** User A presses mouse button on canvas
+   - Triggers `handleMouseDown(e)` on Client A
+   - Sets `isDrawing = true`
+   - Stores initial position in `lastX`, `lastY`
+
+2. **User A Action:** User A moves mouse while button is pressed
+   - Triggers `handleMouseMove(e)` on Client A
+   - Calculates current mouse position
+   - Creates line data object: `{ x0: lastX, y0: lastY, x1: currentX, y1: currentY, color: currentColor }`
+
+3. **Client A Local Rendering:**
+   - `drawLine(lineData)` is called on Client A
+   - Line appears immediately on Client A's canvas (local feedback)
+
+4. **Client A Emission:**
+   - Client A executes `socket.emit('draw', lineData)`
+   - Line data is sent over WebSocket connection to server
+
+5. **Server Reception:**
+   - Server receives `'draw'` event with line data
+   - Server's `'draw'` event handler is triggered
+   - Server logs the event (optional, for debugging)
+
+6. **Server Broadcast:**
+   - Server executes `socket.broadcast.emit('draw', lineData)`
+   - This sends the line data to all connected clients EXCEPT Client A (the originator)
+
+7. **Client B Reception:**
+   - Client B receives `'draw'` event with line data
+   - Client B's `'draw'` event listener is triggered
+
+8. **Client B Rendering:**
+   - Client B calls `drawLine(lineData)`
+   - Canvas context draws the line using the received coordinates and color
+   - Line appears on Client B's canvas
+
+9. **Result:** The line drawn by User A now appears on User B's screen in real-time
+
+### Scenario: User A Clicks "Clear Canvas"
+
+**Step-by-Step Flow:**
+
+1. **User A Action:** User A clicks the "Clear" button
+   - Triggers click event listener on Client A
+
+2. **Client A Emission:**
+   - Client A executes `socket.emit('clear-canvas')`
+   - Clear request is sent to server (no data payload needed)
+
+3. **Server Reception:**
+   - Server receives `'clear-canvas'` event
+   - Server's `'clear-canvas'` event handler is triggered
+
+4. **Server Broadcast:**
+   - Server executes `io.emit('clear-canvas')`
+   - This sends the clear event to ALL connected clients (including Client A)
+
+5. **All Clients Reception:**
+   - Client A, Client B, and all other clients receive `'clear-canvas'` event
+   - Each client's `'clear-canvas'` event listener is triggered
+
+6. **All Clients Rendering:**
+   - Each client calls `clearCanvas()`
+   - Each canvas is cleared using `context.clearRect()`
+
+7. **Result:** All users see a blank canvas simultaneously
+
+## Instructions for Implementation
+
+### Phase 1: Initial Setup
+
+1. **Create Project Directory:**
+   - Create a new folder named `collaborative-whiteboard`
+   - Navigate into this folder in your terminal
+
+2. **Initialize npm:**
+   - Run `npm init -y` to create a default `package.json`
+
+3. **Install Dependencies:**
+   - Run `npm install express socket.io`
+   - Optionally run `npm install --save-dev nodemon` for development
+
+4. **Create Project Structure:**
+   - Create `server.js` in the root directory
+   - Create a `public` folder in the root directory
+   - Inside `public`, create three files: `index.html`, `app.js`, `style.css`
+
+5. **Add npm Script (optional but recommended):**
+   - Open `package.json`
+   - Add a `"start"` script: `"node server.js"`
+   - Add a `"dev"` script: `"nodemon server.js"` (if nodemon is installed)
+
+### Phase 2: Build the Backend
+
+6. **Implement server.js:**
+   - Require Express and Socket.IO at the top
+   - Create Express app instance
+   - Configure Express to serve static files from `public` directory
+   - Create HTTP server from Express app
+   - Initialize Socket.IO with the HTTP server
+   - Set up Socket.IO connection event handler
+   - Inside connection handler, log when a client connects (include socket.id)
+   - Set up listeners for `'draw'` and `'clear-canvas'` events
+   - Implement broadcast logic for each event as specified above
+   - Set up disconnect event handler to log when clients disconnect
+   - Start the HTTP server on port 3000 (or from environment variable)
+
+7. **Test the Server:**
+   - Run `npm start` or `npm run dev`
+   - Verify server starts without errors
+   - Check console for "Server listening on port 3000" message
+
+### Phase 3: Build the Frontend Structure
+
+8. **Implement index.html:**
+   - Create basic HTML5 document structure
+   - Add `<meta>` viewport tag for responsiveness
+   - Link to `style.css` in the `<head>`
+   - In the `<body>`, create a container for controls (color buttons, clear button)
+   - Create the `<canvas>` element with ID `'whiteboard'` and dimensions 800x600
+   - Add a connection status indicator element (e.g., `<div id="status">`)
+   - Before closing `</body>`, include script tag for `/socket.io/socket.io.js` (Socket.IO client)
+   - Include script tag for `app.js`
+
+9. **Implement basic style.css:**
+   - Add CSS to center the canvas and style controls
+   - Style the canvas with a border
+   - Style color buttons (could be colored divs or buttons with background colors)
+   - Style the clear button
+   - Add basic layout (flexbox or grid) for controls
+
+### Phase 4: Implement Client-Side Logic
+
+10. **Implement app.js structure:**
+    - Wrap all code in `DOMContentLoaded` event listener or place script tag at end of body
+    - Declare global variables as specified above
+
+11. **Implement setupSocketIO():**
+    - Initialize socket connection with `io()` (connects to same host automatically)
+    - Add `'connect'` event listener → log to console and call `updateConnectionStatus(true)`
+    - Add `'draw'` event listener → call `drawLine(data)`
+    - Add `'clear-canvas'` event listener → call `clearCanvas()`
+    - Add `'disconnect'` event listener → log to console and call `updateConnectionStatus(false)`
+
+12. **Implement setupCanvas():**
+    - Get canvas element by ID
+    - Get 2D context
+    - Add mouse event listeners as specified
+    - Initialize `isDrawing` to `false`
+
+13. **Implement drawing event handlers:**
+    - Write `handleMouseDown()` to set `isDrawing` flag and store initial position
+    - Write `handleMouseMove()` with conditional check for `isDrawing`, emit draw events
+    - Write `handleMouseUp()` to reset `isDrawing` flag
+
+14. **Implement drawLine() function:**
+    - Use canvas 2D context methods to draw line from received data
+
+15. **Implement setupControls():**
+    - Get color button elements and attach click listeners
+    - Get clear button and attach click listener that emits `'clear-canvas'`
+
+16. **Implement clearCanvas():**
+    - Clear entire canvas using `clearRect()`
+
+17. **Implement updateConnectionStatus():**
+    - Update status indicator UI based on connection state
+
+### Phase 5: Testing and Validation
+
+18. **Test Basic Functionality:**
+    - Start the server
+    - Open `http://localhost:3000` in a browser
+    - Open browser console and verify Socket.IO connection message
+    - Try drawing on the canvas, verify lines appear
+
+19. **Test Multi-Client Synchronization:**
+    - Open `http://localhost:3000` in two different browser windows (or tabs)
+    - Draw in one window, verify the drawing appears in the other window
+    - Test with different colors
+    - Test the clear button
+
+20. **Verify Event Flow:**
+    - Open browser DevTools Network tab, filter for WebSocket (WS)
+    - Observe `'draw'` events being sent and received
+    - Verify no errors in browser console or server logs
+
+### Phase 6: Iteration and Enhancement
+
+21. **Implement Color Picker (Phase 3):**
+    - Create multiple color buttons with different background colors
+    - Update `currentColor` variable when a color is clicked
+    - Add visual feedback to show selected color
+
+22. **Optimize Performance (Phase 4):**
+    - Consider throttling `'draw'` events if performance issues arise
+    - Test with rapid mouse movements
+
+23. **Add User Presence (Phase 4):**
+    - On server, track connected clients count
+    - Emit user count updates to all clients
+    - Display user count in the UI
+
+24. **Document Your Code:**
+    - Add comments explaining key functions
+    - Create a README.md with setup instructions and project description
+
+---
+
+**End of Technical Blueprint**
+
+This blueprint provides all the architectural details and specifications needed to implement the collaborative whiteboard. Each function, event, and data structure is clearly defined. Follow the implementation instructions sequentially, testing after each major step to ensure each component works before moving to the next.
