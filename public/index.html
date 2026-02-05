@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Whiteboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-paint-brush"></i> Collaborative Whiteboard</h1>
+            <p class="subtitle">Draw together in real-time with others</p>
+        </header>
+
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="controls-panel">
+                    <h2><i class="fas fa-sliders-h"></i> Controls</h2>
+                    
+                    <div class="control-group">
+                        <h3><i class="fas fa-palette"></i> Color Picker</h3>
+                        <div class="color-palette">
+                            <button class="color-btn" data-color="#000000" style="background-color: #000000;" title="Black"></button>
+                            <button class="color-btn" data-color="#FF0000" style="background-color: #FF0000;" title="Red"></button>
+                            <button class="color-btn" data-color="#00FF00" style="background-color: #00FF00;" title="Green"></button>
+                            <button class="color-btn" data-color="#0000FF" style="background-color: #0000FF;" title="Blue"></button>
+                            <button class="color-btn" data-color="#FFFF00" style="background-color: #FFFF00;" title="Yellow"></button>
+                            <button class="color-btn" data-color="#FF00FF" style="background-color: #FF00FF;" title="Magenta"></button>
+                            <button class="color-btn" data-color="#00FFFF" style="background-color: #00FFFF;" title="Cyan"></button>
+                            <button class="color-btn" data-color="#FFA500" style="background-color: #FFA500;" title="Orange"></button>
+                        </div>
+                        <div class="selected-color-display">
+                            <span>Selected: </span>
+                            <div class="color-preview" id="selectedColorPreview" style="background-color: #000000;"></div>
+                            <span id="selectedColorHex">#000000</span>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3><i class="fas fa-brush"></i> Brush Size</h3>
+                        <div class="brush-controls">
+                            <button class="brush-btn" data-size="2">Thin</button>
+                            <button class="brush-btn active" data-size="4">Medium</button>
+                            <button class="brush-btn" data-size="8">Thick</button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3><i class="fas fa-tools"></i> Actions</h3>
+                        <div class="action-buttons">
+                            <button id="clearBtn" class="btn-danger">
+                                <i class="fas fa-trash-alt"></i> Clear Canvas
+                            </button>
+                            <button id="undoBtn" class="btn-secondary" disabled>
+                                <i class="fas fa-undo"></i> Undo
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-panel">
+                    <h2><i class="fas fa-network-wired"></i> Connection Status</h2>
+                    <div class="status-info">
+                        <div class="status-item">
+                            <span class="status-label">Status:</span>
+                            <span id="connectionStatus" class="status-indicator disconnected">
+                                <i class="fas fa-circle"></i> Disconnected
+                            </span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Users online:</span>
+                            <span id="userCount">0</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="status-label">Your ID:</span>
+                            <span id="userId">Not connected</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="canvas-container">
+                <div class="canvas-header">
+                    <h2><i class="fas fa-draw-polygon"></i> Shared Canvas</h2>
+                    <div class="canvas-stats">
+                        <span><i class="fas fa-history"></i> Lines drawn: <span id="lineCount">0</span></span>
+                    </div>
+                </div>
+                <canvas id="whiteboard" width="800" height="600">
+                    Your browser does not support the canvas element.
+                </canvas>
+                <div class="canvas-hint">
+                    <i class="fas fa-mouse-pointer"></i> Click and drag to draw. Your drawings appear instantly for all users.
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Real-time collaboration powered by Socket.IO | 
+                <span id="currentYear"></span> | 
+                <i class="fas fa-code"></i> Built with Node.js & HTML5 Canvas
+            </p>
+        </footer>
+    </div>
+
+    <!-- Socket.IO client library (automatically served by the server) -->
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- Our application logic -->
+    <script src="app.js"></script>
+    
+    <script>
+        // Set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

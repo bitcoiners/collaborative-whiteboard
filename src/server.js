@@ -18,33 +18,92 @@ const io = new Server(server, {
 // Serve static files from the 'public' directory
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
+// Track connected users
+let connectedUsers = new Map(); // socket.id -> connection info
+
 // Set up Socket.IO connection handler
 io.on('connection', (socket) => {
-  console.log(`[${new Date().toISOString()}] User connected: ${socket.id}`);
+  const userInfo = {
+    id: socket.id,
+    connectedAt: new Date().toISOString(),
+    lastActivity: new Date().toISOString()
+  };
+  
+  connectedUsers.set(socket.id, userInfo);
+  
+  console.log(`[${userInfo.connectedAt}] User connected: ${socket.id}`);
+  console.log(`Total users online: ${connectedUsers.size}`);
+  
+  // Send current user count to all clients
+  io.emit('user-count', connectedUsers.size);
+  
+  // Send welcome message to this client only
+  socket.emit('welcome', {
+    message: 'Connected to collaborative whiteboard',
+    userId: socket.id,
+    onlineUsers: connectedUsers.size
+  });
   
   // Handle the 'draw' event from a client
   socket.on('draw', (lineData) => {
+    // Update user's last activity
+    if (connectedUsers.has(socket.id)) {
+      connectedUsers.get(socket.id).lastActivity = new Date().toISOString();
+    }
+    
     // Validate incoming data
     if (!isValidDrawData(lineData)) {
       console.warn(`[${socket.id}] Invalid draw data received:`, lineData);
       return;
     }
     
+    // Add timestamp and sender ID to the data
+    const enrichedData = {
+      ...lineData,
+      senderId: socket.id,
+      timestamp: new Date().toISOString()
+    };
+    
     // Broadcast the drawing data to all OTHER connected clients
-    socket.broadcast.emit('draw', lineData);
-    console.log(`[${socket.id}] Broadcast drawing data:`, lineData);
+    socket.broadcast.emit('draw', enrichedData);
+    console.log(`[${socket.id}] Broadcast drawing data`);
   });
 
   // Handle the 'clear-canvas' event from a client
   socket.on('clear-canvas', () => {
+    // Update user's last activity
+    if (connectedUsers.has(socket.id)) {
+      connectedUsers.get(socket.id).lastActivity = new Date().toISOString();
+    }
+    
     // Broadcast the clear event to ALL connected clients
-    io.emit('clear-canvas');
+    io.emit('clear-canvas', {
+      clearedBy: socket.id,
+      timestamp: new Date().toISOString()
+    });
     console.log(`[${socket.id}] Requested canvas clear for all clients`);
+  });
+  
+  // Handle user count request
+  socket.on('get-user-count', () => {
+    socket.emit('user-count', connectedUsers.size);
+  });
+  
+  // Handle ping/pong for connection health
+  socket.on('ping', () => {
+    socket.emit('pong', { timestamp: new Date().toISOString() });
   });
 
   // Handle disconnection
   socket.on('disconnect', () => {
-    console.log(`[${new Date().toISOString()}] User disconnected: ${socket.id}`);
+    connectedUsers.delete(socket.id);
+    const disconnectTime = new Date().toISOString();
+    
+    console.log(`[${disconnectTime}] User disconnected: ${socket.id}`);
+    console.log(`Total users online: ${connectedUsers.size}`);
+    
+    // Update all remaining clients about the new user count
+    io.emit('user-count', connectedUsers.size);
   });
 });
 
@@ -56,7 +115,9 @@ function isValidDrawData(data) {
     typeof data.y0 === 'number' &&
     typeof data.x1 === 'number' && 
     typeof data.y1 === 'number' &&
-    typeof data.color === 'string'
+    typeof data.color === 'string' &&
+    typeof data.brushSize === 'number' &&
+    data.brushSize >= 1 && data.brushSize <= 20
   );
 }
 
@@ -68,8 +129,15 @@ if (require.main === module) {
   server.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
     console.log(`Socket.IO server is running`);
+    console.log(`Whiteboard available at: http://localhost:${PORT}`);
   });
 }
 
 // Export for testing
-module.exports = { app, server, io, isValidDrawData };
+module.exports = { 
+  app, 
+  server, 
+  io, 
+  isValidDrawData,
+  connectedUsers // Export for potential testing
+};
