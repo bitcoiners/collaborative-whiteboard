@@ -1,27 +1,133 @@
 <!DOCTYPE html>
+<!--
+  Collaborative Whiteboard - Main Interface
+  =========================================
+  
+  This is the main HTML file for the Real-Time Collaborative Whiteboard application.
+  It provides the structure and user interface for the collaborative drawing tool.
+  
+  Key Features of this HTML Structure:
+  1. Responsive design with mobile support
+  2. Real-time canvas for collaborative drawing
+  3. Color palette with 8 color options
+  4. Brush size controls (thin, medium, thick)
+  5. Action buttons (Clear Canvas, Undo)
+  6. Connection status panel showing user count and connection state
+  7. Canvas statistics (lines drawn counter)
+  8. Footer with current year and technology credits
+  
+  HTML Structure Overview:
+  - Header with application title and subtitle
+  - Main content area divided into:
+      * Left sidebar (controls and status panels)
+      * Right canvas area (drawing surface)
+  - Footer with informational content
+  
+  Dependencies:
+  - style.css: Local stylesheet for application styling
+  - Font Awesome 6.4.0: CDN for icons
+  - Socket.IO client: Auto-served by server for real-time communication
+  - app.js: Local JavaScript for application logic
+  
+  @file index.html
+  @author Collaborative Whiteboard Team
+  @version 2.0.0
+  @created 2024
+  @lastmodified 2024-01-15
+-->
 <html lang="en">
 <head>
+    <!--
+      Document Head - Metadata and Resources
+      ======================================
+      
+      Contains essential metadata, page title, and external resource links.
+    -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Collaborative Whiteboard</title>
+    
+    <!--
+      Favicon - Base64 encoded SVG
+      ----------------------------
+      Simple brush/board icon in application colors
+      Prevents 404 errors for favicon.ico requests
+    -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%234b6cb7%22/><path d=%22M30,30 L70,30 L70,70 L30,70 Z%22 fill=%22none%22 stroke=%22white%22 stroke-width=%228%22/><path d=%22M40,40 L60,40 L60,60 L40,60 Z%22 fill=%22none%22 stroke=%22%23FFD700%22 stroke-width=%226%22/><circle cx=%2250%22 cy=%2250%22 r=%228%22 fill=%22white%22/></svg>">
+    
+    <!--
+      Stylesheets
+      -----------
+      1. Local stylesheet for application-specific styling
+      2. Font Awesome CDN for icon library
+    -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
+    <!--
+      Main Application Container
+      ==========================
+      
+      Wraps the entire application content with consistent padding and centering.
+      Provides the overall layout structure.
+    -->
     <div class="container">
+        
+        <!--
+          Application Header
+          ==================
+          
+          Contains the main application title and descriptive subtitle.
+          Uses gradient background and prominent typography for visual hierarchy.
+        -->
         <header>
             <h1><i class="fas fa-paint-brush"></i> Collaborative Whiteboard</h1>
             <p class="subtitle">Draw together in real-time with others</p>
         </header>
 
+        <!--
+          Main Content Area
+          =================
+          
+          Flex container that holds the sidebar (controls) and canvas area.
+          Responsive design switches from horizontal to vertical layout on smaller screens.
+        -->
         <div class="main-content">
+            
+            <!--
+              Sidebar - Controls and Status Panels
+              =====================================
+              
+              Fixed-width sidebar containing all user controls and connection information.
+              Organized into two main panels: Controls and Status.
+            -->
             <div class="sidebar">
+                
+                <!--
+                  Controls Panel
+                  ==============
+                  
+                  Contains all drawing controls organized into logical groups:
+                  1. Color Picker - 8 color options with visual preview
+                  2. Brush Size - 3 thickness options (thin, medium, thick)
+                  3. Actions - Canvas management buttons (Clear, Undo)
+                -->
                 <div class="controls-panel">
                     <h2><i class="fas fa-sliders-h"></i> Controls</h2>
                     
+                    <!--
+                      Color Picker Control Group
+                      --------------------------
+                      
+                      Grid of 8 color buttons with data-color attributes for JavaScript.
+                      Selected color is visually indicated and shown in preview area.
+                    -->
                     <div class="control-group">
                         <h3><i class="fas fa-palette"></i> Color Picker</h3>
                         <div class="color-palette">
+                            <!-- Color buttons with data-color attribute for JavaScript binding -->
                             <button class="color-btn" data-color="#000000" style="background-color: #000000;" title="Black"></button>
                             <button class="color-btn" data-color="#FF0000" style="background-color: #FF0000;" title="Red"></button>
                             <button class="color-btn" data-color="#00FF00" style="background-color: #00FF00;" title="Green"></button>
@@ -31,6 +137,7 @@
                             <button class="color-btn" data-color="#00FFFF" style="background-color: #00FFFF;" title="Cyan"></button>
                             <button class="color-btn" data-color="#FFA500" style="background-color: #FFA500;" title="Orange"></button>
                         </div>
+                        <!-- Selected Color Display -->
                         <div class="selected-color-display">
                             <span>Selected: </span>
                             <div class="color-preview" id="selectedColorPreview" style="background-color: #000000;"></div>
@@ -38,6 +145,13 @@
                         </div>
                     </div>
 
+                    <!--
+                      Brush Size Control Group
+                      ------------------------
+                      
+                      Three buttons for selecting brush thickness.
+                      Uses data-size attribute for JavaScript binding.
+                    -->
                     <div class="control-group">
                         <h3><i class="fas fa-brush"></i> Brush Size</h3>
                         <div class="brush-controls">
@@ -47,6 +161,14 @@
                         </div>
                     </div>
 
+                    <!--
+                      Actions Control Group
+                      ---------------------
+                      
+                      Canvas management buttons with appropriate styling:
+                      1. Clear Canvas (red/danger button) - Clears canvas for all users
+                      2. Undo (gray/secondary button) - Undoes last local drawing action
+                    -->
                     <div class="control-group">
                         <h3><i class="fas fa-tools"></i> Actions</h3>
                         <div class="action-buttons">
@@ -60,19 +182,29 @@
                     </div>
                 </div>
 
+                <!--
+                  Status Panel
+                  ============
+                  
+                  Displays real-time connection information and user statistics.
+                  Visual indicators show connection state and user count.
+                -->
                 <div class="status-panel">
                     <h2><i class="fas fa-network-wired"></i> Connection Status</h2>
                     <div class="status-info">
+                        <!-- Connection Status Indicator -->
                         <div class="status-item">
                             <span class="status-label">Status:</span>
                             <span id="connectionStatus" class="status-indicator disconnected">
                                 <i class="fas fa-circle"></i> Disconnected
                             </span>
                         </div>
+                        <!-- Online Users Counter -->
                         <div class="status-item">
                             <span class="status-label">Users online:</span>
                             <span id="userCount">0</span>
                         </div>
+                        <!-- User ID Display -->
                         <div class="status-item">
                             <span class="status-label">Your ID:</span>
                             <span id="userId">Not connected</span>
@@ -81,22 +213,51 @@
                 </div>
             </div>
 
+            <!--
+              Canvas Container
+              ================
+              
+              Main drawing area containing the canvas and related information.
+              Flex-grow property allows canvas to fill available space.
+            -->
             <div class="canvas-container">
+                <!-- Canvas Header with Title and Statistics -->
                 <div class="canvas-header">
                     <h2><i class="fas fa-draw-polygon"></i> Shared Canvas</h2>
                     <div class="canvas-stats">
                         <span><i class="fas fa-history"></i> Lines drawn: <span id="lineCount">0</span></span>
                     </div>
                 </div>
+                
+                <!--
+                  Whiteboard Canvas Element
+                  =========================
+                  
+                  HTML5 Canvas element for drawing surface.
+                  Features:
+                  - ID: "whiteboard" (referenced in JavaScript)
+                  - Initial dimensions: 800x600 (scaled dynamically)
+                  - Fallback text for browsers without canvas support
+                  - Crosshair cursor for precise drawing
+                -->
                 <canvas id="whiteboard" width="800" height="600">
                     Your browser does not support the canvas element.
                 </canvas>
+                
+                <!-- Canvas Usage Hint -->
                 <div class="canvas-hint">
                     <i class="fas fa-mouse-pointer"></i> Click and drag to draw. Your drawings appear instantly for all users.
                 </div>
             </div>
         </div>
 
+        <!--
+          Application Footer
+          ==================
+          
+          Informational footer with technology credits and current year.
+          Dark background with light text for visual separation.
+        -->
         <footer>
             <p>Real-time collaboration powered by Socket.IO | 
                 <span id="currentYear"></span> | 
@@ -105,14 +266,43 @@
         </footer>
     </div>
 
+    <!--
+      JavaScript Dependencies and Application Logic
+      =============================================
+      
+      Script loading order is important:
+      1. Socket.IO client library (auto-served by server)
+      2. Application logic (app.js)
+      3. Inline scripts for page-specific functionality
+    -->
+    
     <!-- Socket.IO client library (automatically served by the server) -->
     <script src="/socket.io/socket.io.js"></script>
+    
     <!-- Our application logic -->
     <script src="app.js"></script>
     
+    <!--
+      Inline JavaScript
+      =================
+      
+      Page-specific JavaScript that doesn't belong in the main application module.
+      Currently handles setting the current year in the footer.
+    -->
     <script>
-        // Set current year in footer
+        // Set current year in footer for copyright/attribution
         document.getElementById('currentYear').textContent = new Date().getFullYear();
     </script>
 </body>
 </html>
+<!--
+  End of Collaborative Whiteboard HTML Document
+  =============================================
+  
+  This file provides the complete structure for the collaborative drawing interface.
+  All interactive elements are properly wired to JavaScript event handlers in app.js.
+  
+  @see app.js for application logic and event handling
+  @see style.css for visual styling and responsive design
+  @see server.js for Socket.IO server implementation
+-->
