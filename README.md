@@ -69,24 +69,24 @@ This project serves as a foundational learning experience for understanding real
 This project uses Jest for Test-Driven Development (TDD).
 
 ### Test Structure
-- \`tests/integration/\` - Socket.IO server and event tests
-- \`tests/unit/\` - Drawing logic and helper function tests
-- \`tests/e2e/\` - Manual testing checklists
+- `tests/integration/` - Socket.IO server and event tests
+- `tests/unit/` - Drawing logic and helper function tests
+- `tests/e2e/` - Manual testing checklists
 
 ### Running Tests
-\`\`\`bash
-# Run all tests
+
+Run all tests
 npm test
 
-# Run specific test file
+Run specific test file
 npm test tests/integration/server.test.js
 
-# Run tests in watch mode
+Run tests in watch mode
 npm run test:watch
 
-# Generate coverage report
+Generate coverage report
 npm run test:coverage
-\`\`\`
+
 
 ### Test Coverage
 **Total: 37 passing tests**
@@ -100,22 +100,22 @@ All tests pass with comprehensive coverage of drawing logic, Socket.IO events, p
 ## Installation
 
 1. Clone the repository:
-\`\`\`bash
 git clone https://github.com/YOUR_USERNAME/collaborative-whiteboard.git
-\`\`\`
+
+
 
 2. Install dependencies:
-\`\`\`bash
 cd collaborative-whiteboard
 npm install
-\`\`\`
+
+
 
 3. Start the server:
-\`\`\`bash
 npm start
-\`\`\`
 
-4. Open \`http://localhost:3000\` in multiple browser windows to test collaboration.
+
+
+4. Open `http://localhost:3000` in multiple browser windows to test collaboration.
 
 ## Technology Stack
 - **Backend:** Node.js, Express, Socket.IO
@@ -125,21 +125,20 @@ npm start
 - **Styling:** Font Awesome icons, custom CSS with animations
 
 ## Project Structure
-\`\`\`
 collaborative-whiteboard/
 ├── src/
-│   └── server.js          # Express and Socket.IO server
+│ └── server.js # Express and Socket.IO server
 ├── public/
-│   ├── index.html         # Main HTML page
-│   ├── app.js             # Client-side JavaScript (optimized)
-│   └── style.css          # CSS styling
+│ ├── index.html # Main HTML page
+│ ├── app.js # Client-side JavaScript (optimized)
+│ └── style.css # CSS styling
 ├── tests/
-│   ├── integration/       # Socket.IO server tests (17 tests)
-│   ├── unit/             # Drawing logic tests (20 tests)
-│   └── e2e/              # Manual testing checklists
-├── jest.config.js         # Jest configuration
-└── package.json          # Project dependencies
-\`\`\`
+│ ├── integration/ # Socket.IO server tests (17 tests)
+│ ├── unit/ # Drawing logic tests (20 tests)
+│ └── e2e/ # Manual testing checklists
+├── jest.config.js # Jest configuration
+└── package.json # Project dependencies
+
 
 ## Phase 4 Implementation Details
 
