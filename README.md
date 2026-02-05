@@ -75,16 +75,16 @@ This project uses Jest for Test-Driven Development (TDD).
 
 ### Running Tests
 
-Run all tests
+**Run all tests
 npm test
 
-Run specific test file
+**Run specific test file
 npm test tests/integration/server.test.js
 
-Run tests in watch mode
+**Run tests in watch mode
 npm run test:watch
 
-Generate coverage report
+**Generate coverage report
 npm run test:coverage
 
 
@@ -125,6 +125,7 @@ npm start
 - **Styling:** Font Awesome icons, custom CSS with animations
 
 ## Project Structure
+
 collaborative-whiteboard/
 ├── src/
 │ └── server.js # Express and Socket.IO server
