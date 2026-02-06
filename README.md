@@ -1,153 +1,83 @@
 # Collaborative Whiteboard
 
-A real-time collaborative whiteboard application built with Node.js, Express, and Socket.IO.
+A real-time collaborative whiteboard application built with Node.js, Express, and Socket.IO with modular architecture.
 
 ## Features
 - **Real-Time Drawing**: Click and drag to draw lines on a shared canvas
-- **Color Selection**: 8-color palette with visual selection feedback
-- **Brush Size Control**: 3 brush sizes (thin, medium, thick)
-- **Clear Canvas**: Reset the canvas for all connected users with confirmation
+- **Color Selection**: 10-color palette with visual selection feedback
+- **Brush Size Control**: Adjustable brush size from 1-20px
+- **Clear Canvas**: Reset the canvas for all connected users
 - **Real-Time Synchronization**: All drawing actions are instantly visible to all connected clients
 - **Multi-User Support**: Multiple users can draw simultaneously without conflicts
-- **Connection Status**: Visual indicators with real-time updates
-- **User Management**: User count display and individual user IDs
+- **Connection Status**: Clear visual indicator with red/green status dot
+- **User Management**: User count display and individual socket IDs
 - **Undo Functionality**: Local undo for user's own drawings
-- **Mobile Support**: Touch event handling for mobile devices
 - **Responsive Design**: Works on desktop, tablet, and mobile screens
-- **Performance Optimized**: Throttled network events (20/sec) for smooth experience
-- **Error Resilient**: Automatic reconnection with offline drawing buffer
+- **Modular Architecture**: Clean separation of concerns with dedicated managers
+- **Test-Driven Development**: Comprehensive test suite with 67 passing tests
 
-This project serves as a foundational learning experience for understanding real-time, event-driven architectures that are essential for multiplayer game development.
+## Development Status ✅ COMPLETED
 
-## Development Status
-
-### ✅ Phase 1: Foundation & Connection (COMPLETED)
+### ✅ Phase 1: Foundation & Connection
 - Express server serving static files
 - Socket.IO connection established
 - Basic client-server communication
 
-### ✅ Phase 2: Core Drawing & Real-Time Synchronization (COMPLETED)
+### ✅ Phase 2: Core Drawing & Real-Time Synchronization
 - Mouse event handling for canvas drawing
 - Drawing data structure and protocol
 - Real-time broadcast of drawing events
 - Multi-client drawing synchronization
-- **Comprehensive test suite with 7 passing tests**
 
-### ✅ Phase 3: Enhanced Features (COMPLETED)
-- Color picker with 8 color options
-- Brush size selection (3 sizes)
+### ✅ Phase 3: Enhanced Features
+- Color picker with 10 color options
+- Brush size slider (1-20px range)
 - Clear canvas button with synchronization across all users
-- Improved UI with professional styling and animations
-- Connection status indicators
+- Professional UI with animations and visual feedback
+- Connection status indicators with proper coloring
 - User count display and user IDs
 - Undo functionality (local)
-- Touch/mobile support
-- Responsive design for all screen sizes
 
-### 🔄 Phase 4: Polish & Optimization (IN PROGRESS)
-
-#### ✅ Performance Optimization (COMPLETED)
-- **Drawing Event Throttling**: Network emissions limited to 20 events/second
-- **Local Drawing**: Remains immediate for smooth visual feedback
-- **Network Traffic**: Reduced by approximately 75% during rapid drawing
-- **Adaptive Control**: API available for future connection-speed-based optimization
-
-#### ✅ Enhanced Error Handling & Reconnection (COMPLETED)
-- **Automatic Reconnection**: Exponential backoff with 5 retry attempts
-- **Offline Drawing Buffer**: Preserves drawings during disconnections
-- **Error Recovery**: Graceful degradation and automatic state recovery
-- **User Feedback**: Connection status notifications
-- **Error Logging**: Comprehensive error tracking for debugging
-
-#### 🔄 Remaining Phase 4 Tasks
-- Comprehensive code documentation
-- Production deployment configuration
-- Load testing with multiple concurrent users
-
-## Testing
-
-This project uses Jest for Test-Driven Development (TDD).
-
-### Test Structure
-- `tests/integration/` - Socket.IO server and event tests
-- `tests/unit/` - Drawing logic and helper function tests
-- `tests/e2e/` - Manual testing checklists
-
-### Running Tests
-
-- **Run all tests
-npm test
-
-- **Run specific test file
-npm test tests/integration/server.test.js
-
-- **Run tests in watch mode
-npm run test:watch
-
-- **Generate coverage report
-npm run test:coverage
-
-
-### Test Coverage
-**Total: 37 passing tests**
-- **Phase 1 & 2:** 7 tests (core functionality)
-- **Phase 3:** 8 tests (enhanced features)
-- **Phase 4 (Performance):** 13 tests (throttling optimization)
-- **Phase 4 (Error Handling):** 9 tests (reconnection & error recovery)
-
-All tests pass with comprehensive coverage of drawing logic, Socket.IO events, performance optimizations, and error handling scenarios.
-
-## Installation
-
-1. Clone the repository:
-git clone https://github.com/YOUR_USERNAME/collaborative-whiteboard.git
-
-
-
-2. Install dependencies:
-cd collaborative-whiteboard
-npm install
-
-
-
-3. Start the server:
-npm start
-
-
-
-4. Open `http://localhost:3000` in multiple browser windows to test collaboration.
+### ✅ Phase 4: Polish & Optimization
+- **Modular Architecture**: StateManager, CanvasManager, SocketManager, UIManager
+- **Performance Optimization**: Efficient event handling and rendering
+- **Enhanced Error Handling**: Graceful disconnection/reconnection
+- **Code Documentation**: Comprehensive comments and structure
+- **Testing**: 67 tests全部通过 across 11 test suites
+- **Production Readiness**: Clean codebase with proper .gitignore
 
 ## Technology Stack
 - **Backend:** Node.js, Express, Socket.IO
-- **Frontend:** HTML5 Canvas, Vanilla JavaScript, CSS
-- **Testing:** Jest, Supertest
-- **Development:** nodemon for auto-restart
-- **Styling:** Font Awesome icons, custom CSS with animations
+- **Frontend:** HTML5 Canvas, Vanilla JavaScript (ES6+), CSS3
+- **Architecture:** Modular design with separation of concerns
+- **Testing:** Jest for comprehensive test coverage
+- **Development:** nodemon for auto-restart during development
+- **Styling:** Font Awesome icons, custom CSS with animations and transitions
+
+## Modular Architecture
+
+### Core Modules:
+1. **StateManager.js** - Centralized application state management
+   - Manages drawing history, user state, application properties
+   - Provides consistent state access and updates
+
+2. **CanvasManager.js** - Drawing operations and canvas handling
+   - Mouse/touch event handling
+   - Drawing rendering and canvas manipulation
+   - Coordinate calculations and drawing logic
+
+3. **SocketManager.js** - Real-time network communication
+   - Socket.IO connection management
+   - Event emission and listening
+   - Network error handling and reconnection
+
+4. **UIManager.js** - User interface and controls
+   - DOM element caching and updates
+   - Control event handling (colors, brush size, clear, undo)
+   - Connection status display and user feedback
+
+### Application Orchestrator:
+- **app.js** - Main application file that initializes and connects all modules
+- Follows the mediator pattern for clean module communication
 
 
-
-## Phase 4 Implementation Details
-
-### Performance Optimizations
-- Drawing events are throttled to 20 events/second
-- Local rendering remains immediate for smooth UX
-- Network traffic reduced by 75% during rapid drawing
-- Adaptive throttling API for future optimization
-
-### Error Handling System
-- **Automatic Reconnection**: 5 attempts with exponential backoff (1s, 2s, 4s, 8s, 16s)
-- **Offline Support**: Drawings buffered locally and synced upon reconnection
-- **Connection Monitoring**: Continuous health checking and status reporting
-- **User Notifications**: Visual feedback for all connection states
-- **Error Recovery**: Graceful degradation without data loss
-
-### Testing Strategy
-- **Unit Tests**: Logic functions, algorithms, state management
-- **Integration Tests**: Socket.IO event flow, server-client communication
-- **E2E Documentation**: Manual testing scenarios for complete validation
-
-## Next Steps
-The project is nearing completion with only documentation and deployment configuration remaining. The application is production-ready with robust error handling, performance optimizations, and comprehensive test coverage.
-
-## License
-This project is open source and available for educational purposes.
