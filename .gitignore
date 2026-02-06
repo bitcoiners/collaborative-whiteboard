@@ -47,3 +47,9 @@ coverage/
 *.backup
 *.bak
 *.backup*
+
+# Project-specific temporary files
+dependency-analysis.txt
+fix_test.js
+validate-architecture.js
+public/modules/*.backup*

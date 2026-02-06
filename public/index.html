@@ -9,29 +9,30 @@
   Key Features of this HTML Structure:
   1. Responsive design with mobile support
   2. Real-time canvas for collaborative drawing
-  3. Color palette with 8 color options
-  4. Brush size controls (thin, medium, thick)
+  3. Color palette with 10 color options
+  4. Brush size slider with range control
   5. Action buttons (Clear Canvas, Undo)
   6. Connection status panel showing user count and connection state
-  7. Canvas statistics (lines drawn counter)
-  8. Footer with current year and technology credits
+  7. Canvas statistics (lines drawn counter, history size)
+  8. Modular JavaScript architecture support
   
   HTML Structure Overview:
-  - Header with application title and subtitle
+  - Header with application title and status indicators
   - Main content area divided into:
       * Left sidebar (controls and status panels)
       * Right canvas area (drawing surface)
-  - Footer with informational content
+  - Footer with informational content and stats
   
   Dependencies:
   - style.css: Local stylesheet for application styling
   - Font Awesome 6.4.0: CDN for icons
   - Socket.IO client: Auto-served by server for real-time communication
-  - app.js: Local JavaScript for application logic
+  - Modular JavaScript files (StateManager, CanvasManager, SocketManager, UIManager)
+  - app.js: Main application orchestrator
   
   @file index.html
   @author Collaborative Whiteboard Team
-  @version 2.0.0
+  @version 3.0.0 - Modular Architecture
   @created 2024
   @lastmodified 2024-01-15
 -->
@@ -79,12 +80,31 @@
           Application Header
           ==================
           
-          Contains the main application title and descriptive subtitle.
+          Contains the main application title and status indicators.
           Uses gradient background and prominent typography for visual hierarchy.
         -->
         <header>
             <h1><i class="fas fa-paint-brush"></i> Collaborative Whiteboard</h1>
             <p class="subtitle">Draw together in real-time with others</p>
+            
+            <!-- Status Indicators -->
+            <div class="header-status">
+                <div class="status-item">
+                    <span class="status-label">Status:</span>
+                    <span id="connectionStatus" class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span id="statusText">Connecting...</span>
+                    </span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Users:</span>
+                    <span id="userCount">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">ID:</span>
+                    <span id="socketId" class="socket-id">-</span>
+                </div>
+            </div>
         </header>
 
         <!--
@@ -110,8 +130,8 @@
                   ==============
                   
                   Contains all drawing controls organized into logical groups:
-                  1. Color Picker - 8 color options with visual preview
-                  2. Brush Size - 3 thickness options (thin, medium, thick)
+                  1. Color Picker - 10 color options with visual preview
+                  2. Brush Size - Slider with range 1-20 pixels
                   3. Actions - Canvas management buttons (Clear, Undo)
                 -->
                 <div class="controls-panel">
@@ -121,14 +141,14 @@
                       Color Picker Control Group
                       --------------------------
                       
-                      Grid of 8 color buttons with data-color attributes for JavaScript.
+                      Grid of 10 color buttons with data-color attributes for JavaScript.
                       Selected color is visually indicated and shown in preview area.
                     -->
                     <div class="control-group">
                         <h3><i class="fas fa-palette"></i> Color Picker</h3>
                         <div class="color-palette">
                             <!-- Color buttons with data-color attribute for JavaScript binding -->
-                            <button class="color-btn" data-color="#000000" style="background-color: #000000;" title="Black"></button>
+                            <button class="color-btn active" data-color="#000000" style="background-color: #000000;" title="Black"></button>
                             <button class="color-btn" data-color="#FF0000" style="background-color: #FF0000;" title="Red"></button>
                             <button class="color-btn" data-color="#00FF00" style="background-color: #00FF00;" title="Green"></button>
                             <button class="color-btn" data-color="#0000FF" style="background-color: #0000FF;" title="Blue"></button>
@@ -136,6 +156,8 @@
                             <button class="color-btn" data-color="#FF00FF" style="background-color: #FF00FF;" title="Magenta"></button>
                             <button class="color-btn" data-color="#00FFFF" style="background-color: #00FFFF;" title="Cyan"></button>
                             <button class="color-btn" data-color="#FFA500" style="background-color: #FFA500;" title="Orange"></button>
+                            <button class="color-btn" data-color="#8B4513" style="background-color: #8B4513;" title="Brown"></button>
+                            <button class="color-btn" data-color="#FFFFFF" style="background-color: #FFFFFF; border: 2px solid #ccc;" title="White"></button>
                         </div>
                         <!-- Selected Color Display -->
                         <div class="selected-color-display">
@@ -149,15 +171,17 @@
                       Brush Size Control Group
                       ------------------------
                       
-                      Three buttons for selecting brush thickness.
-                      Uses data-size attribute for JavaScript binding.
+                      Range slider for selecting brush thickness with visual feedback.
                     -->
                     <div class="control-group">
                         <h3><i class="fas fa-brush"></i> Brush Size</h3>
                         <div class="brush-controls">
-                            <button class="brush-btn" data-size="2">Thin</button>
-                            <button class="brush-btn active" data-size="4">Medium</button>
-                            <button class="brush-btn" data-size="8">Thick</button>
+                            <input type="range" id="brushSize" min="1" max="20" value="4" class="brush-slider">
+                            <div class="brush-size-info">
+                                <span>Size: </span>
+                                <span id="brushSizeValue">4px</span>
+                                <div class="brush-preview" id="brushPreview"></div>
+                            </div>
                         </div>
                     </div>
 
@@ -175,7 +199,7 @@
                             <button id="clearBtn" class="btn-danger">
                                 <i class="fas fa-trash-alt"></i> Clear Canvas
                             </button>
-                            <button id="undoBtn" class="btn-secondary" disabled>
+                            <button id="undoBtn" class="btn-secondary">
                                 <i class="fas fa-undo"></i> Undo
                             </button>
                         </div>
@@ -183,32 +207,51 @@
                 </div>
 
                 <!--
-                  Status Panel
-                  ============
+                  Statistics Panel
+                  ================
                   
-                  Displays real-time connection information and user statistics.
-                  Visual indicators show connection state and user count.
+                  Displays real-time drawing statistics and application state.
                 -->
-                <div class="status-panel">
-                    <h2><i class="fas fa-network-wired"></i> Connection Status</h2>
-                    <div class="status-info">
-                        <!-- Connection Status Indicator -->
-                        <div class="status-item">
-                            <span class="status-label">Status:</span>
-                            <span id="connectionStatus" class="status-indicator disconnected">
-                                <i class="fas fa-circle"></i> Disconnected
-                            </span>
+                <div class="stats-panel">
+                    <h2><i class="fas fa-chart-bar"></i> Statistics</h2>
+                    <div class="stats-info">
+                        <div class="stat-item">
+                            <span class="stat-label">Lines drawn:</span>
+                            <span id="linesDrawn" class="stat-value">0</span>
                         </div>
-                        <!-- Online Users Counter -->
-                        <div class="status-item">
-                            <span class="status-label">Users online:</span>
-                            <span id="userCount">0</span>
+                        <div class="stat-item">
+                            <span class="stat-label">History size:</span>
+                            <span id="historySize" class="stat-value">0 items</span>
                         </div>
-                        <!-- User ID Display -->
-                        <div class="status-item">
-                            <span class="status-label">Your ID:</span>
-                            <span id="userId">Not connected</span>
+                        <div class="stat-item">
+                            <span class="stat-label">Offline buffer:</span>
+                            <span id="offlineBufferSize" class="stat-value">0</span>
                         </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Brush size:</span>
+                            <span id="currentBrushSize" class="stat-value">4px</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!--
+                  Debug Panel (Optional - visible in development)
+                  ===============================================
+                  
+                  Hidden by default, can be shown for debugging purposes.
+                -->
+                <div class="debug-panel" style="display: none;">
+                    <h2><i class="fas fa-bug"></i> Debug</h2>
+                    <div class="debug-actions">
+                        <button onclick="window.debugState()" class="btn-debug">
+                            <i class="fas fa-code"></i> Show State
+                        </button>
+                        <button onclick="window.resetApp()" class="btn-debug">
+                            <i class="fas fa-redo"></i> Reset App
+                        </button>
+                        <button onclick="window.location.reload()" class="btn-debug">
+                            <i class="fas fa-sync"></i> Reload
+                        </button>
                     </div>
                 </div>
             </div>
@@ -221,11 +264,11 @@
               Flex-grow property allows canvas to fill available space.
             -->
             <div class="canvas-container">
-                <!-- Canvas Header with Title and Statistics -->
+                <!-- Canvas Header with Title and Instructions -->
                 <div class="canvas-header">
                     <h2><i class="fas fa-draw-polygon"></i> Shared Canvas</h2>
-                    <div class="canvas-stats">
-                        <span><i class="fas fa-history"></i> Lines drawn: <span id="lineCount">0</span></span>
+                    <div class="canvas-instruction">
+                        <i class="fas fa-mouse-pointer"></i> Click and drag to draw. Your drawings appear instantly for all users.
                     </div>
                 </div>
                 
@@ -240,14 +283,17 @@
                   - Fallback text for browsers without canvas support
                   - Crosshair cursor for precise drawing
                 -->
-                <canvas id="whiteboard" width="800" height="600">
-                    Your browser does not support the canvas element.
-                </canvas>
-                
-                <!-- Canvas Usage Hint -->
-                <div class="canvas-hint">
-                    <i class="fas fa-mouse-pointer"></i> Click and drag to draw. Your drawings appear instantly for all users.
-                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="whiteboard" width="800" height="600">
+                        Your browser does not support the canvas element.
+                    </canvas>
+                    <div class="canvas-overlay" id="canvasOverlay">
+                        <div class="overlay-content">
+                            <i class="fas fa-paint-brush"></i>
+                            <p>Click and drag to start drawing</p>
+                        </div>
+                    </div>
+                </div>  
             </div>
         </div>
 
@@ -259,10 +305,19 @@
           Dark background with light text for visual separation.
         -->
         <footer>
-            <p>Real-time collaboration powered by Socket.IO | 
-                <span id="currentYear"></span> | 
-                <i class="fas fa-code"></i> Built with Node.js & HTML5 Canvas
-            </p>
+            <div class="footer-content">
+                <div class="footer-left">
+                    <p>
+                        <i class="fas fa-code"></i> Built with Node.js, Socket.IO & HTML5 Canvas |
+                        <span id="currentYear"></span>
+                    </p>
+                </div>
+                <div class="footer-right">
+                    <p>
+                        Real-time collaboration | Modular Architecture v3.0
+                    </p>
+                </div>
+            </div>
         </footer>
     </div>
 
@@ -272,14 +327,21 @@
       
       Script loading order is important:
       1. Socket.IO client library (auto-served by server)
-      2. Application logic (app.js)
-      3. Inline scripts for page-specific functionality
+      2. Module definitions (StateManager, CanvasManager, SocketManager, UIManager)
+      3. Main application orchestrator (app.js)
+      4. Inline scripts for page-specific functionality
     -->
     
     <!-- Socket.IO client library (automatically served by the server) -->
     <script src="/socket.io/socket.io.js"></script>
     
-    <!-- Our application logic -->
+    <!-- Module Definitions -->
+    <script src="modules/StateManager.js"></script>
+    <script src="modules/UIManager.js"></script>
+    <script src="modules/SocketManager.js"></script>
+    <script src="modules/CanvasManager.js"></script>
+    
+    <!-- Main Application Orchestrator -->
     <script src="app.js"></script>
     
     <!--
@@ -287,11 +349,65 @@
       =================
       
       Page-specific JavaScript that doesn't belong in the main application module.
-      Currently handles setting the current year in the footer.
+      Currently handles setting the current year in the footer and debug functions.
     -->
     <script>
         // Set current year in footer for copyright/attribution
         document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // Debug functions (available in development mode)
+        window.debugState = function() {
+            if (window.whiteboard) {
+                console.log('Application State:', window.whiteboard.getState());
+                console.log('Modules:', window.whiteboard.modules);
+                alert('State logged to console. Press F12 to view.');
+            } else {
+                console.log('Whiteboard not initialized yet');
+            }
+        };
+        
+        window.resetApp = function() {
+            if (window.whiteboard && confirm('Reset application state?')) {
+                window.whiteboard.resetState();
+                alert('Application state reset');
+            }
+        };
+        
+        // Brush size preview
+        function updateBrushPreview() {
+            const brushSize = document.getElementById('brushSize').value;
+            const preview = document.getElementById('brushPreview');
+            if (preview) {
+                preview.style.width = brushSize + 'px';
+                preview.style.height = brushSize + 'px';
+                preview.style.borderRadius = brushSize + 'px';
+            }
+        }
+        
+        // Initialize brush preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const brushSlider = document.getElementById('brushSize');
+            if (brushSlider) {
+                brushSlider.addEventListener('input', updateBrushPreview);
+                updateBrushPreview(); // Initial update
+            }
+            
+            // Toggle debug panel with Ctrl+Shift+D
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+                    const debugPanel = document.querySelector('.debug-panel');
+                    if (debugPanel) {
+                        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                        console.log('Debug panel toggled');
+                    }
+                }
+            });
+        });
+        
+        // Show connection status in console
+        console.log('🎨 Collaborative Whiteboard Loading...');
+        console.log('📝 Modular Architecture v3.0');
+        console.log('🌐 Socket.IO ready for real-time collaboration');
     </script>
 </body>
 </html>
@@ -300,9 +416,15 @@
   =============================================
   
   This file provides the complete structure for the collaborative drawing interface.
-  All interactive elements are properly wired to JavaScript event handlers in app.js.
+  All interactive elements are properly wired to JavaScript modules.
   
-  @see app.js for application logic and event handling
+  Modular Architecture Components:
+  - StateManager: Centralized state management
+  - CanvasManager: Drawing operations and canvas handling
+  - SocketManager: Network communication and real-time sync
+  - UIManager: User interface and event handling
+  
+  @see app.js for application orchestration
   @see style.css for visual styling and responsive design
   @see server.js for Socket.IO server implementation
 -->

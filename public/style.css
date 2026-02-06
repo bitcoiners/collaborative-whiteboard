@@ -21,9 +21,9 @@
  * - Interactive: Hover states and active selection indicators
  * 
  * Layout Structure:
- * 1. Header with application title and subtitle
+ * 1. Header with application title and status indicators
  * 2. Main content area with sidebar (controls) and canvas container
- * 3. Footer with informational content
+ * 3. Footer with informational content and stats
  * 
  * Responsive Breakpoints:
  * - Desktop: > 1100px (full sidebar + canvas layout)
@@ -32,7 +32,7 @@
  * 
  * @file style.css
  * @author Collaborative Whiteboard Team
- * @version 2.0.0
+ * @version 3.0.0 - Modular Architecture
  * @created 2024
  * @lastmodified 2024-01-15
  */
@@ -41,35 +41,12 @@
    RESET & BASE STYLES
    ============================================================================ */
 
-/**
- * Universal Reset
- * 
- * Removes default margins, padding, and sets consistent box-sizing
- * across all elements for predictable layout behavior.
- * 
- * @selector *
- * @property {string} box-sizing - border-box includes padding and border in element's total width/height
- */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/**
- * Base Body Styles
- * 
- * Sets up the foundational typography, colors, and background for the
- * entire application. Uses a subtle gradient background for visual depth.
- * 
- * @selector body
- * @property {string} font-family - Clean, modern font stack
- * @property {number} line-height - Adequate spacing for readability
- * @property {string} color - Primary text color
- * @property {string} background - Subtle blue-gray gradient
- * @property {string} min-height - Ensures full viewport coverage
- * @property {string} padding - Breathing room around content
- */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
@@ -79,21 +56,6 @@ body {
     padding: 20px;
 }
 
-/**
- * Main Container
- * 
- * Centers content, provides white background, and adds subtle shadow
- * for elevation effect. Rounded corners soften the visual appearance.
- * 
- * @selector .container
- * @property {string} max-width - Limits width on large screens
- * @property {string} margin - Centers container horizontally
- * @property {string} background-color - Clean white background
- * @property {string} border-radius - Rounded corners
- * @property {string} box-shadow - Subtle elevation shadow
- * @property {string} overflow - Contains child elements
- * @property {string} min-height - Minimum height for content area
- */
 .container {
     max-width: 1400px;
     margin: 0 auto;
@@ -102,45 +64,21 @@ body {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     min-height: 95vh;
+    display: flex;
+    flex-direction: column;
 }
 
 /* ============================================================================
    HEADER STYLES
    ============================================================================ */
 
-/**
- * Main Header
- * 
- * Prominent header with gradient background and application branding.
- * Uses high contrast white text for readability over dark gradient.
- * 
- * @selector header
- * @property {string} background - Blue gradient from light to dark
- * @property {string} color - High contrast white text
- * @property {string} padding - Generous spacing
- * @property {string} text-align - Center alignment
- */
 header {
     background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
     color: white;
-    padding: 25px 30px;
-    text-align: center;
+    padding: 20px 30px;
+    position: relative;
 }
 
-/**
- * Application Title
- * 
- * Primary application name display with icon alignment.
- * Large, bold font for clear visual hierarchy.
- * 
- * @selector header h1
- * @property {string} font-size - Large, prominent size
- * @property {string} margin-bottom - Space below title
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} justify-content - Horizontal centering
- * @property {string} gap - Space between icon and text
- */
 header h1 {
     font-size: 2.5rem;
     margin-bottom: 8px;
@@ -150,83 +88,80 @@ header h1 {
     gap: 15px;
 }
 
-/**
- * Subtitle
- * 
- * Secondary description text with reduced opacity for visual hierarchy.
- * Light font weight for subtle appearance.
- * 
- * @selector header .subtitle
- * @property {string} font-size - Slightly smaller than body text
- * @property {string} opacity - Reduced for secondary importance
- * @property {string} font-weight - Light weight for subtlety
- */
 header .subtitle {
     font-size: 1.1rem;
     opacity: 0.9;
     font-weight: 300;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.header-status {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+.status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+}
+
+.status-label {
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.status-indicator {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.socket-id {
+    font-family: monospace;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
 }
 
 /* ============================================================================
    MAIN CONTENT LAYOUT
    ============================================================================ */
 
-/**
- * Main Content Area
- * 
- * Flex container that holds sidebar and canvas area.
- * Responsive design changes direction on smaller screens.
- * 
- * @selector .main-content
- * @property {string} display - Flex for side-by-side layout
- * @property {string} padding - Inner spacing
- * @property {string} gap - Space between sidebar and canvas
- * @property {string} min-height - Minimum height for drawing area
- */
 .main-content {
     display: flex;
     padding: 25px;
     gap: 25px;
-    min-height: 700px;
+    flex: 1;
+    min-height: 600px;
 }
 
 /* ============================================================================
    SIDEBAR STYLES (CONTROLS & STATUS)
    ============================================================================ */
 
-/**
- * Sidebar Container
- * 
- * Fixed-width sidebar containing all controls and status information.
- * Uses flex column layout to stack control panels vertically.
- * 
- * @selector .sidebar
- * @property {string} flex - Fixed width (300px) that doesn't grow/shrink
- * @property {string} display - Flex column for vertical stacking
- * @property {string} flex-direction - Column layout
- * @property {string} gap - Space between control panels
- */
 .sidebar {
-    flex: 0 0 300px;
+    flex: 0 0 320px;
     display: flex;
     flex-direction: column;
     gap: 25px;
 }
 
-/**
- * Control & Status Panels
- * 
- * Shared styles for both controls and status panels.
- * Light background with subtle borders and shadows for card-like appearance.
- * 
- * @selector .controls-panel, .status-panel
- * @property {string} background-color - Light gray background
- * @property {string} border-radius - Rounded corners
- * @property {string} padding - Inner spacing
- * @property {string} box-shadow - Subtle elevation
- * @property {string} border - Light border for definition
- */
-.controls-panel, .status-panel {
+.controls-panel, .stats-panel, .debug-panel {
     background-color: #f8f9fa;
     border-radius: 10px;
     padding: 22px;
@@ -234,21 +169,7 @@ header .subtitle {
     border: 1px solid #e9ecef;
 }
 
-/**
- * Panel Headers
- * 
- * Section headers within control/status panels with icon support.
- * Dark color for strong visual hierarchy.
- * 
- * @selector .controls-panel h2, .status-panel h2
- * @property {string} font-size - Larger than body text
- * @property {string} margin-bottom - Space below header
- * @property {string} color - Dark color for contrast
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} gap - Space between icon and text
- */
-.controls-panel h2, .status-panel h2 {
+.controls-panel h2, .stats-panel h2, .debug-panel h2 {
     font-size: 1.4rem;
     margin-bottom: 20px;
     color: #2c3e50;
@@ -257,31 +178,10 @@ header .subtitle {
     gap: 10px;
 }
 
-/**
- * Control Groups
- * 
- * Logical grouping of related controls with descriptive headers.
- * 
- * @selector .control-group
- * @property {string} margin-bottom - Space between control groups
- */
 .control-group {
     margin-bottom: 25px;
 }
 
-/**
- * Control Group Headers
- * 
- * Sub-headers within control groups for specific functionality.
- * 
- * @selector .control-group h3
- * @property {string} font-size - Slightly larger than body
- * @property {string} margin-bottom - Space below sub-header
- * @property {string} color - Medium-dark color
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} gap - Space between icon and text
- */
 .control-group h3 {
     font-size: 1.1rem;
     margin-bottom: 12px;
@@ -295,38 +195,13 @@ header .subtitle {
    COLOR PALETTE CONTROLS
    ============================================================================ */
 
-/**
- * Color Palette Grid
- * 
- * Grid layout for color selection buttons.
- * Ensures consistent spacing and alignment of color options.
- * 
- * @selector .color-palette
- * @property {string} display - Grid for precise layout
- * @property {string} grid-template-columns - 4 columns on desktop
- * @property {string} gap - Space between color buttons
- * @property {string} margin-bottom - Space below palette
- */
 .color-palette {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 10px;
     margin-bottom: 15px;
 }
 
-/**
- * Color Selection Buttons
- * 
- * Circular buttons for color selection with hover and active states.
- * 
- * @selector .color-btn
- * @property {string} width - Fixed size for consistent appearance
- * @property {string} height - Equal to width for perfect circle
- * @property {string} border-radius - 50% creates perfect circle
- * @property {string} border - Light border for definition
- * @property {string} cursor - Pointer indicates interactivity
- * @property {string} transition - Smooth hover/active animations
- */
 .color-btn {
     width: 45px;
     height: 45px;
@@ -336,47 +211,17 @@ header .subtitle {
     transition: all 0.2s ease;
 }
 
-/**
- * Color Button Hover State
- * 
- * Visual feedback when hovering over color buttons.
- * 
- * @selector .color-btn:hover
- * @property {string} transform - Slight scale increase
- * @property {string} border-color - Darker border on hover
- */
 .color-btn:hover {
     transform: scale(1.1);
     border-color: #aaa;
 }
 
-/**
- * Active Color Button
- * 
- * Visual indication of currently selected color.
- * 
- * @selector .color-btn.active
- * @property {string} border-color - Dark border for selection
- * @property {string} transform - Slight scale increase
- * @property {string} box-shadow - Glow effect for emphasis
- */
 .color-btn.active {
     border-color: #2c3e50;
     transform: scale(1.1);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
-/**
- * Selected Color Display
- * 
- * Shows the currently selected color with text label.
- * 
- * @selector .selected-color-display
- * @property {string} display - Flex for horizontal layout
- * @property {string} align-items - Vertical centering
- * @property {string} gap - Space between preview and text
- * @property {string} font-weight - Bold text for emphasis
- */
 .selected-color-display {
     display: flex;
     align-items: center;
@@ -384,17 +229,6 @@ header .subtitle {
     font-weight: 500;
 }
 
-/**
- * Color Preview Box
- * 
- * Small square showing the currently selected color.
- * 
- * @selector .color-preview
- * @property {string} width - Fixed size
- * @property {string} height - Equal to width for square
- * @property {string} border-radius - Slightly rounded corners
- * @property {string} border - Definition border
- */
 .color-preview {
     width: 25px;
     height: 25px;
@@ -406,110 +240,67 @@ header .subtitle {
    BRUSH CONTROLS
    ============================================================================ */
 
-/**
- * Brush Controls Container
- * 
- * Horizontal layout for brush size selection buttons.
- * 
- * @selector .brush-controls
- * @property {string} display - Flex for horizontal layout
- * @property {string} gap - Space between brush size buttons
- */
 .brush-controls {
     display: flex;
-    gap: 10px;
+    flex-direction: column;
+    gap: 15px;
 }
 
-/**
- * Brush Size Buttons
- * 
- * Buttons for selecting different brush sizes/thicknesses.
- * 
- * @selector .brush-btn
- * @property {string} flex - Equal distribution of available space
- * @property {string} padding - Comfortable touch target
- * @property {string} background-color - Light background
- * @property {string} border - Subtle border
- * @property {string} border-radius - Rounded corners
- * @property {string} cursor - Pointer indicates interactivity
- * @property {string} font-weight - Medium weight for readability
- * @property {string} transition - Smooth state changes
- */
-.brush-btn {
-    flex: 1;
-    padding: 10px;
-    background-color: #e9ecef;
-    border: 2px solid #dee2e6;
-    border-radius: 6px;
+.brush-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    background: #dee2e6;
+    border-radius: 3px;
+    outline: none;
+}
+
+.brush-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4b6cb7;
     cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.brush-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #4b6cb7;
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.brush-size-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     font-weight: 500;
-    transition: all 0.2s ease;
 }
 
-/**
- * Brush Button Hover State
- * 
- * @selector .brush-btn:hover
- * @property {string} background-color - Slightly darker on hover
- */
-.brush-btn:hover {
-    background-color: #dee2e6;
-}
-
-/**
- * Active Brush Button
- * 
- * Indicates currently selected brush size.
- * 
- * @selector .brush-btn.active
- * @property {string} background-color - Primary blue color
- * @property {string} color - White text for contrast
- * @property {string} border-color - Darker blue border
- */
-.brush-btn.active {
-    background-color: #4b6cb7;
-    color: white;
-    border-color: #3a559f;
+.brush-preview {
+    width: 20px;
+    height: 20px;
+    background: #2c3e50;
+    border-radius: 50%;
+    margin-left: 10px;
 }
 
 /* ============================================================================
    ACTION BUTTONS
    ============================================================================ */
 
-/**
- * Action Buttons Container
- * 
- * Vertical stack for primary action buttons (Clear, Undo).
- * 
- * @selector .action-buttons
- * @property {string} display - Flex column for vertical stacking
- * @property {string} flex-direction - Column layout
- * @property {string} gap - Space between buttons
- */
 .action-buttons {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-/**
- * Action Button Base Styles
- * 
- * Shared styles for all action buttons.
- * 
- * @selector .action-buttons button
- * @property {string} padding - Generous padding for touch targets
- * @property {string} border - No border for clean look
- * @property {string} border-radius - Rounded corners
- * @property {string} cursor - Pointer indicates interactivity
- * @property {string} font-size - Readable text size
- * @property {string} font-weight - Bold for emphasis
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} justify-content - Horizontal centering
- * @property {string} gap - Space between icon and text
- * @property {string} transition - Smooth hover animations
- */
 .action-buttons button {
     padding: 14px;
     border: none;
@@ -524,105 +315,42 @@ header .subtitle {
     transition: all 0.2s ease;
 }
 
-/**
- * Danger Button (Clear Canvas)
- * 
- * Red button for destructive actions requiring caution.
- * 
- * @selector .btn-danger
- * @property {string} background-color - Red for danger/warning
- * @property {string} color - White text for contrast
- */
 .btn-danger {
     background-color: #e74c3c;
     color: white;
 }
 
-/**
- * Danger Button Hover State
- * 
- * @selector .btn-danger:hover
- * @property {string} background-color - Darker red on hover
- * @property {string} transform - Slight lift effect
- */
 .btn-danger:hover {
     background-color: #c0392b;
     transform: translateY(-2px);
 }
 
-/**
- * Secondary Button (Undo)
- * 
- * Gray button for secondary actions.
- * 
- * @selector .btn-secondary
- * @property {string} background-color - Neutral gray
- * @property {string} color - White text
- */
 .btn-secondary {
     background-color: #95a5a6;
     color: white;
 }
 
-/**
- * Secondary Button Hover State
- * 
- * @selector .btn-secondary:hover:not(:disabled)
- * @property {string} background-color - Darker gray on hover
- * @property {string} transform - Slight lift effect
- */
 .btn-secondary:hover:not(:disabled) {
     background-color: #7f8c8d;
     transform: translateY(-2px);
 }
 
-/**
- * Disabled Secondary Button
- * 
- * Visual indication when undo is not available.
- * 
- * @selector .btn-secondary:disabled
- * @property {string} opacity - Reduced visibility
- * @property {string} cursor - Not-allowed indicates disabled state
- */
 .btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
 /* ============================================================================
-   STATUS PANEL
+   STATISTICS PANEL
    ============================================================================ */
 
-/**
- * Status Information Container
- * 
- * Vertical stack for status display items.
- * 
- * @selector .status-info
- * @property {string} display - Flex column for vertical layout
- * @property {string} flex-direction - Column stacking
- * @property {string} gap - Space between status items
- */
-.status-info {
+.stats-info {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
 
-/**
- * Status Item
- * 
- * Individual status display line with label and value.
- * 
- * @selector .status-item
- * @property {string} display - Flex for horizontal layout
- * @property {string} justify-content - Space between label and value
- * @property {string} align-items - Vertical centering
- * @property {string} padding-bottom - Space below each item
- * @property {string} border-bottom - Separator line between items
- */
-.status-item {
+.stat-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -630,151 +358,84 @@ header .subtitle {
     border-bottom: 1px solid #e9ecef;
 }
 
-/**
- * Last Status Item
- * 
- * Removes border from the last status item for clean appearance.
- * 
- * @selector .status-item:last-child
- * @property {string} border-bottom - No border on last item
- */
-.status-item:last-child {
+.stat-item:last-child {
     border-bottom: none;
 }
 
-/**
- * Status Label
- * 
- * Descriptive text for status items.
- * 
- * @selector .status-label
- * @property {string} font-weight - Bold for emphasis
- * @property {string} color - Medium gray for secondary importance
- */
-.status-label {
+.stat-label {
     font-weight: 600;
     color: #555;
 }
 
-/**
- * Status Indicator Base
- * 
- * Visual indicator for connection status with icon support.
- * 
- * @selector .status-indicator
- * @property {string} padding - Compact padding
- * @property {string} border-radius - Pill shape
- * @property {string} font-size - Slightly smaller text
- * @property {string} font-weight - Bold for emphasis
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} gap - Space between icon and text
- */
-.status-indicator {
-    padding: 6px 12px;
-    border-radius: 20px;
+.stat-value {
+    font-weight: 500;
+    color: #2c3e50;
+    font-family: monospace;
+    background: #f1f3f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* ============================================================================
+   DEBUG PANEL
+   ============================================================================ */
+
+.debug-panel {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.debug-panel h2 {
+    color: white;
+}
+
+.debug-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-debug {
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
     font-size: 0.9rem;
     font-weight: 600;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
 }
 
-/**
- * Connected Status Indicator
- * 
- * Green styling for active/connected state.
- * 
- * @selector .status-indicator.connected
- * @property {string} background-color - Light green background
- * @property {string} color - Dark green text
- */
-.status-indicator.connected {
-    background-color: rgba(46, 204, 113, 0.2);
-    color: #27ae60;
-}
-
-/**
- * Disconnected Status Indicator
- * 
- * Red styling for inactive/disconnected state.
- * 
- * @selector .status-indicator.disconnected
- * @property {string} background-color - Light red background
- * @property {string} color - Dark red text
- */
-.status-indicator.disconnected {
-    background-color: rgba(231, 76, 60, 0.2);
-    color: #c0392b;
-}
-
-/**
- * Status Indicator Icon
- * 
- * Small icon within status indicators.
- * 
- * @selector .status-indicator i
- * @property {string} font-size - Small icon size
- */
-.status-indicator i {
-    font-size: 0.7rem;
+.btn-debug:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
 }
 
 /* ============================================================================
    CANVAS CONTAINER
    ============================================================================ */
 
-/**
- * Canvas Container
- * 
- * Main area containing the drawing canvas and its header.
- * Uses flex to ensure canvas fills available space.
- * 
- * @selector .canvas-container
- * @property {string} flex - Grows to fill available space
- * @property {string} display - Flex column for vertical stacking
- * @property {string} flex-direction - Column layout
- */
 .canvas-container {
     flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 15px;
 }
 
-/**
- * Canvas Header
- * 
- * Area above canvas with title and statistics.
- * 
- * @selector .canvas-header
- * @property {string} display - Flex for horizontal layout
- * @property {string} justify-content - Space between title and stats
- * @property {string} align-items - Vertical centering
- * @property {string} margin-bottom - Space below header
- * @property {string} padding-bottom - Space below content
- * @property {string} border-bottom - Separator line
- */
 .canvas-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
     padding-bottom: 15px;
     border-bottom: 2px solid #e9ecef;
 }
 
-/**
- * Canvas Title
- * 
- * Heading for the canvas area.
- * 
- * @selector .canvas-header h2
- * @property {string} font-size - Larger than body text
- * @property {string} color - Dark color for contrast
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} gap - Space between icon and text
- */
 .canvas-header h2 {
     font-size: 1.6rem;
     color: #2c3e50;
@@ -783,215 +444,280 @@ header .subtitle {
     gap: 10px;
 }
 
-/**
- * Canvas Statistics
- * 
- * Secondary text showing drawing statistics.
- * 
- * @selector .canvas-stats
- * @property {string} font-size - Slightly smaller text
- * @property {string} color - Medium gray for secondary importance
- */
-.canvas-stats {
-    font-size: 0.95rem;
-    color: #7f8c8d;
-}
-
-/**
- * Canvas Stats Icon
- * 
- * Icons within statistics display.
- * 
- * @selector .canvas-stats i
- * @property {string} margin-right - Space after icon
- */
-.canvas-stats i {
-    margin-right: 5px;
-}
-
-/**
- * Whiteboard Canvas
- * 
- * The main drawing surface with visual styling and interactive properties.
- * 
- * @selector #whiteboard
- * @property {string} flex - Grows to fill available space
- * @property {string} border - Definition border around canvas
- * @property {string} border-radius - Rounded corners
- * @property {string} background-color - White drawing surface
- * @property {string} cursor - Crosshair for precise drawing
- * @property {string} box-shadow - Inner shadow for depth
- * @property {string} touch-action - Prevents scrolling on touch devices
- */
-#whiteboard {
-    flex: 1;
-    border: 2px solid #bdc3c7;
-    border-radius: 8px;
-    background-color: white;
-    cursor: crosshair;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
-    touch-action: none; /* Prevent scrolling on touch devices */
-}
-
-/**
- * Canvas Hint
- * 
- * Help text below canvas with usage instructions.
- * 
- * @selector .canvas-hint
- * @property {string} margin-top - Space above hint
- * @property {string} padding - Inner spacing
- * @property {string} background-color - Light background
- * @property {string} border-radius - Rounded corners
- * @property {string} font-size - Slightly smaller text
- * @property {string} color - Medium gray for secondary importance
- * @property {string} display - Flex for icon alignment
- * @property {string} align-items - Vertical centering
- * @property {string} gap - Space between icon and text
- */
-.canvas-hint {
-    margin-top: 15px;
-    padding: 12px;
-    background-color: #f8f9fa;
-    border-radius: 6px;
+.canvas-instruction {
     font-size: 0.95rem;
     color: #7f8c8d;
     display: flex;
     align-items: center;
     gap: 10px;
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 8px;
+}
+
+.canvas-wrapper {
+    flex: 1;
+    position: relative;
+    border: 2px solid #bdc3c7;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.05);
+}
+
+#whiteboard {
+    display: block;
+    width: 100%;
+    height: 100%;
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.canvas-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.canvas-overlay:hover {
+    opacity: 1;
+}
+
+.overlay-content {
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.overlay-content i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    opacity: 0.7;
+}
+
+.connection-bar {
+    background: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #7f8c8d;
 }
 
 /* ============================================================================
    FOOTER
    ============================================================================ */
 
-/**
- * Footer
- * 
- * Informational footer at bottom of application.
- * 
- * @selector footer
- * @property {string} background-color - Dark background
- * @property {string} color - Light text for contrast
- * @property {string} padding - Inner spacing
- * @property {string} text-align - Center alignment
- * @property {string} font-size - Slightly smaller text
- */
 footer {
     background-color: #2c3e50;
     color: #ecf0f1;
     padding: 20px;
-    text-align: center;
     font-size: 0.9rem;
 }
 
-/**
- * Footer Paragraph
- * 
- * Container for footer content with wrapping support.
- * 
- * @selector footer p
- * @property {string} display - Flex for layout
- * @property {string} align-items - Vertical centering
- * @property {string} justify-content - Center alignment
- * @property {string} gap - Space between elements
- * @property {string} flex-wrap - Allows wrapping on small screens
- */
-footer p {
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.footer-left p, .footer-right p {
     display: flex;
     align-items: center;
-    justify-content: center;
     gap: 10px;
     flex-wrap: wrap;
 }
 
-/**
- * Footer Icon
- * 
- * Icons within footer with accent color.
- * 
- * @selector footer i
- * @property {string} color - Accent blue color
- */
 footer i {
     color: #3498db;
+}
+
+/* ============================================================================
+   CONNECTION STATUS COLORS
+   ============================================================================ */
+
+.status-indicator.connected {
+    background-color: rgba(46, 204, 113, 0.2);
+    color: #27ae60;
+}
+
+.status-indicator.disconnected {
+    background-color: rgba(231, 76, 60, 0.2);
+    color: #c0392b;
+}
+
+.status-indicator.connecting,
+.status-indicator.reconnecting {
+    background-color: rgba(241, 196, 15, 0.2);
+    color: #f39c12;
+}
+
+/* ============================================================================
+   NOTIFICATIONS
+   ============================================================================ */
+
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    background: white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+    max-width: 350px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.notification-info {
+    border-left: 4px solid #3498db;
+}
+
+.notification-success {
+    border-left: 4px solid #2ecc71;
+}
+
+.notification-warning {
+    border-left: 4px solid #f39c12;
+}
+
+.notification-error {
+    border-left: 4px solid #e74c3c;
+}
+
+.notification-icon {
+    font-size: 1.2rem;
+}
+
+.notification-text {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+.notification-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #95a5a6;
+    padding: 0 5px;
+}
+
+.notification-close:hover {
+    color: #7f8c8d;
 }
 
 /* ============================================================================
    RESPONSIVE DESIGN
    ============================================================================ */
 
-/**
- * Large Tablet / Small Desktop Breakpoint (≤ 1100px)
- * 
- * Switches from side-by-side to stacked layout.
- * Adjusts color palette grid for better use of horizontal space.
- * 
- * @media (max-width: 1100px)
- */
 @media (max-width: 1100px) {
-    /**
-     * Stack main content vertically
-     */
     .main-content {
         flex-direction: column;
     }
     
-    /**
-     * Make sidebar full width
-     */
     .sidebar {
         flex: 0 0 auto;
         width: 100%;
     }
     
-    /**
-     * Expand color palette to use more columns
-     */
     .color-palette {
-        grid-template-columns: repeat(8, 1fr);
+        grid-template-columns: repeat(10, 1fr);
     }
 }
 
-/**
- * Tablet Breakpoint (≤ 768px)
- * 
- * Further adjustments for medium-sized screens.
- * 
- * @media (max-width: 768px)
- */
 @media (max-width: 768px) {
-    /**
-     * Reduce header size
-     */
     header h1 {
         font-size: 2rem;
     }
     
-    /**
-     * Reduce main content padding
-     */
+    .header-status {
+        gap: 15px;
+    }
+    
+    .status-item {
+        flex: 1;
+        min-width: 140px;
+        justify-content: center;
+    }
+    
     .main-content {
         padding: 15px;
     }
     
-    /**
-     * Reduce panel padding
-     */
-    .controls-panel, .status-panel {
+    .controls-panel, .stats-panel {
         padding: 18px;
     }
     
-    /**
-     * Adjust color palette columns
-     */
     .color-palette {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(5, 1fr);
     }
     
-    /**
-     * Stack canvas header elements
-     */
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    header {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 1.7rem;
+    }
+    
+    .header-status {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .status-item {
+        min-width: auto;
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .color-palette {
+        grid-template-columns: repeat(5, 1fr);
+    }
+    
     .canvas-header {
         flex-direction: column;
         align-items: flex-start;
@@ -999,81 +725,84 @@ footer i {
     }
 }
 
-/**
- * Mobile Breakpoint (≤ 480px)
- * 
- * Optimizations for small mobile screens.
- * 
- * @media (max-width: 480px)
- */
-@media (max-width: 480px) {
-    /**
-     * Reduce body padding
-     */
-    body {
-        padding: 10px;
-    }
-    
-    /**
-     * Reduce header padding
-     */
-    header {
-        padding: 20px 15px;
-    }
-    
-    /**
-     * Further reduce header size
-     */
-    header h1 {
-        font-size: 1.7rem;
-    }
-    
-    /**
-     * Maintain 4-column color palette
-     */
-    .color-palette {
-        grid-template-columns: repeat(4, 1fr);
-    }
-    
-    /**
-     * Stack brush controls vertically
-     */
-    .brush-controls {
-        flex-direction: column;
-    }
-}
-
 /* ============================================================================
    ANIMATIONS & EFFECTS
    ============================================================================ */
 
-/**
- * Pulse Animation
- * 
- * Subtle pulsing effect for connected status indicator.
- * Creates gentle attention without being distracting.
- * 
- * @keyframes pulse
- * @property {number} 0% - Full opacity
- * @property {number} 50% - Reduced opacity
- * @property {number} 100% - Full opacity
- */
 @keyframes pulse {
     0% { opacity: 1; }
     50% { opacity: 0.7; }
     100% { opacity: 1; }
 }
 
-/**
- * Animated Connection Status Icon
- * 
- * Applies pulse animation to connected status icon.
- * 
- * @selector .status-indicator.connected i
- * @property {string} animation - Continuous pulse effect
- */
-.status-indicator.connected i {
+/* Remove or comment out this line: */
+/* .status-indicator.connected i {
     animation: pulse 2s infinite;
+} */
+
+
+.status-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: #ff4757; /* red for disconnected */
+}
+
+.status-indicator.connected .status-dot {
+    background-color: #2ed573; /* green for connected */
+}
+
+.status-indicator.connecting .status-dot {
+    background-color: #ffa502; /* orange for connecting */
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
+
+.hidden {
+    display: none !important;
+}
+
+.visible {
+    display: block !important;
+}
+
+.disabled {
+    opacity: 0.5;
+    cursor: not-allowed !important;
+}
+
+.loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 /* ============================================================================
