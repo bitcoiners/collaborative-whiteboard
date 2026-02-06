@@ -358,7 +358,7 @@ const PORT = process.env.PORT || DEFAULT_PORT;
  * This allows the server to be imported and tested without automatically starting
  */
 if (require.main === module) {
-  server.listen(PORT, () => {
+  server.listen(PORT, "0.0.0.0", () => {
     console.log(`=========================================`);
     console.log(`Collaborative Whiteboard Server`);
     console.log(`=========================================`);

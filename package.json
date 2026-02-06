@@ -1,6 +1,9 @@
 {
   "name": "collaborative-whiteboard",
   "version": "1.0.0",
+  "engines": {
+    "node": "18.x"
+  },
   "description": "Real-time collaborative whiteboard with Socket.IO",
   "main": "src/server.js",
   "directories": {
